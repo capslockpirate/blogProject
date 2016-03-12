@@ -2,12 +2,23 @@
 <html>
 <head>
 	<title>Blog CRUD Project</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-
+	<div class="container">
+		<div class="posts__container">
+			<button id="post__add">Add Post</button>
+			<div class="post__item" data-id="97f95f75-0c02-4449-af28-5ec742fdaab0">
+				<h2 class="post__title">First Post</h2>
+				<div class="post__date">2015-03-25T12:00:00</div>
+				<p class="post__text">Woot, this is my first blog post. I'm really interesting!!!</p>
+				<button id="post__edit">Edit</button>
+				<button id="post__remove">Remove</button>
+			</div>
+		</div>
+	</div>
 
 <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
-<script type="text/javascript" src="scripts/script.js"></script>
+<script type="text/javascript" src="script.js"></script>
 </body>
 </html>
