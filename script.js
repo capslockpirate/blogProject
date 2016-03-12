@@ -4,8 +4,6 @@ $(function() {
     local_mode: true,
     buttons: {
       add: $('#post__add'),
-      remove: $('#post__remove'),
-      edit: $('#post__edit'),
       create: $('#post__create')
     },
     localPosts: [{
@@ -16,7 +14,7 @@ $(function() {
       },
       {
       "id": "85f95f75-7to9-4777-bd27-5sr742fdnn77",
-      "title": "First Post",
+      "title": "Second Post",
       "text": "Woot, this is my first blog post. I'm really interesting!!!",
       "timestamp": "2016-03-2T12:00:00"
     }],
@@ -66,8 +64,31 @@ $(function() {
       }
 
     },
-    editPost: function() {},
-    deletePost: function() {},
+    editPost: function(updatePostObj) {
+      console.log(updatePostObj);
+
+          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('h2').text(updatePostObj.title);
+          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('p').text(updatePostObj.text);
+
+      $.ajax({
+        url: blog.ENDPOINT + updatePostObj.id,
+        method: 'POST',
+        data: {"title": updatePostObj.title, "text": updatePostObj.text},
+        success: function(response) {
+          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('h2').text(response.title);
+          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('p').text(response.text);
+        }
+      });
+    },
+    deletePost: function(postId) {
+      $.ajax({
+        url: blog.ENDPOINT + postId,
+        method: 'DELETE',
+        success: function(response) {
+          alert('Post Deleted');
+        }
+      });
+    },
     createPostHtml: function(postObj) {
       
       var $postHtml = $('<div></div>');
@@ -85,14 +106,14 @@ $(function() {
     },
     clickListeners: function() {
       //click #post__add
-      $('#post__add').click(function() {
-        $('.create-post__form').show()
+      blog.buttons.add.click(function() {
+        $('.create-post__form').show();
         $('.new__title').focus();
         $(this).hide()
       });
 
       //Click #post__create
-      $('#post__create').click(function(e) {
+      blog.buttons.create.click(function(e) {
         e.preventDefault();
         
         var newPostObj = {};
@@ -107,9 +128,29 @@ $(function() {
         $('input[type="text"]').val('');
       });
 
+      //Click #post__edit
+      $('body').on('click', '#post__edit', function() {
+        // $(this).parent.data('id');
+        $('#post__edit, #post__remove').hide();
+        $(this).parent().append('<form class="edit-post__form"><input type="text" placeholder="New Title" class="update__title"><input type="text" placeholder="New Text" class="update__text"><button id="post__update">Update Post</button></form>');
+
+      });
+
+      $('body').on('click', '#post__update', function(e) {
+        e.preventDefault();
+        var updatePostObj = {};
+
+        updatePostObj.title = $('.update__title').val();
+        updatePostObj.text = $('.update__text').val();
+        updatePostObj.id = $(this).parent().parent().data('id');
+        $('.edit-post__form').remove();
+        $('#post__edit, #post__remove').show();
+        blog.editPost(updatePostObj);
+      });
+
       //Click #post__remove
       $('body').on('click','#post__remove', function() {
-        blog.deletePost();
+        blog.deletePost($(this).parent().data('id'));
         $(this).parent().remove();
       });
     }
