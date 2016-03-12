@@ -27,49 +27,43 @@ $(function() {
         blog.localPosts.forEach(function(el, i, arr) {
           blog.createPostHtml(el);
         });
-      } else {
-        $.ajax({
-          url: blog.ENDPOINT,
-          method: 'GET',
-          success: function(posts) {
-            posts.forEach(function(el, i, arr) {
-              blog.createPostHtml(el);
-            });
-          }
-        });
       }
+      $.ajax({
+        url: blog.ENDPOINT,
+        method: 'GET',
+        success: function(posts) {
+          posts.forEach(function(el, i, arr) {
+            blog.createPostHtml(el);
+          });
+        }
+      });
     },
     createPost: function(postObj) {
-      console.log(postObj);
       if(blog.local_mode){
         postObj.timestamp = new Date().toISOString();
         //assuming the server creates id this just makes a random number for local testing
         postObj.id = Math.floor(Math.random() * 1000);
         blog.localPosts.push(postObj);
-        console.log(blog.localPosts);
         blog.createPostHtml(postObj);
-
-
-      } else {
-
-        $.ajax({
-          url: blog.ENDPOINT,
-          method: 'POST',
-          data: postObj,
-          success: function(createdPost) {
-            //assume here that response would be the full post object with ID and timestamp
-            blog.createPostHtml(createdPost);
-          }
-        });
       }
+
+      $.ajax({
+        url: blog.ENDPOINT,
+        method: 'POST',
+        data: postObj,
+        success: function(createdPost) {
+          //assume here that response would be the full post object with ID and timestamp
+          blog.createPostHtml(createdPost);
+        }
+      });
+    
 
     },
     editPost: function(updatePostObj) {
-      console.log(updatePostObj);
-
-          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('h2').text(updatePostObj.title);
-          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('p').text(updatePostObj.text);
-
+      if (blog.local_mode){  
+        $('.post__item[data-id="'+ updatePostObj.id+'"]').children('h2').text(updatePostObj.title);
+        $('.post__item[data-id="'+ updatePostObj.id+'"]').children('p').text(updatePostObj.text);
+      }
       $.ajax({
         url: blog.ENDPOINT + updatePostObj.id,
         method: 'POST',
