@@ -3,9 +3,10 @@ $(function() {
     ENDPOINT: '/v1/posts/',
     local_mode: true,
     buttons: {
-      add: $('#post__add'),
-      create: $('#post__create')
+      add: document.getElementById('post__add'),
+      create: document.getElementById('post__create')
     },
+    postContainer: document.querySelector('.posts__container'),
     localPosts: [{
       "id": "97f95f75-0c02-4449-af28-5ec742fdaab0",
       "title": "First Post",
@@ -25,7 +26,7 @@ $(function() {
     getPosts: function() {
       if (blog.local_mode) {
         blog.localPosts.forEach(function(el, i, arr) {
-          blog.createPostHtml(el);
+          blog.postContainer.insertBefore(blog.createPostHtml(el), blog.postContainer.firstChild);
         });
       }
       $.ajax({
@@ -33,7 +34,7 @@ $(function() {
         method: 'GET',
         success: function(posts) {
           posts.forEach(function(el, i, arr) {
-            blog.createPostHtml(el);
+            blog.postContainer.insertBefore(blog.createPostHtml(el), blog.postContainer.firstChild);
           });
         }
       });
@@ -44,7 +45,7 @@ $(function() {
         //assuming the server creates id this just makes a random number for local testing
         postObj.id = Math.floor(Math.random() * 1000);
         blog.localPosts.push(postObj);
-        blog.createPostHtml(postObj);
+        blog.postContainer.insertBefore(blog.createPostHtml(postObj), blog.postContainer.firstChild);
       }
 
       $.ajax({
@@ -53,24 +54,22 @@ $(function() {
         data: postObj,
         success: function(createdPost) {
           //assume here that response would be the full post object with ID and timestamp
-          blog.createPostHtml(createdPost);
+          blog.postContainer.insertBefore(blog.createPostHtml(createdPost), blog.postContainer.firstChild);
         }
       });
-    
-
     },
     editPost: function(updatePostObj) {
-      if (blog.local_mode){  
-        $('.post__item[data-id="'+ updatePostObj.id+'"]').children('h2').text(updatePostObj.title);
-        $('.post__item[data-id="'+ updatePostObj.id+'"]').children('p').text(updatePostObj.text);
+      if (blog.local_mode) {
+        document.querySelector('.post__item[data-id="' + updatePostObj.id + '"] h2').innerHTML = updatePostObj.title;
+        document.querySelector('.post__item[data-id="'+ updatePostObj.id+'"] p').innerHTML = updatePostObj.text;
       }
       $.ajax({
         url: blog.ENDPOINT + updatePostObj.id,
         method: 'POST',
         data: {"title": updatePostObj.title, "text": updatePostObj.text},
         success: function(response) {
-          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('h2').text(response.title);
-          $('.post__item[data-id="'+ updatePostObj.id+'"]').children('p').text(response.text);
+          document.querySelector('.post__item[data-id="' + updatePostObj.id + '"] h2').innerHTML = response.title;
+          document.querySelector('.post__item[data-id="'+ updatePostObj.id+'"] p').innerHTML = response.text;
         }
       });
     },
@@ -85,71 +84,126 @@ $(function() {
     },
     createPostHtml: function(postObj) {
       
-      var $postHtml = $('<div></div>');
+      var postHtml = document.createElement('div');
+      var postHeading = document.createElement('h2');
+      var postDate = document.createElement('div');
+      var editButton = document.createElement('button');
+      var removeButton = document.createElement('button');
+      var postText = document.createElement('p');
 
-      $postHtml
-        .addClass('post__item')
-        .attr('data-id', postObj.id)
-        .append('<h2 class="post__title">' + postObj.title + '</h2>')
-        .append('<div class="post__date">' + postObj.timestamp + '</div>')
-        .append('<p class="post__text">' + postObj.text + '</p>')
-        .append('<button id="post__edit">Edit</button><button id="post__remove">Remove</button>');
-
-      $('.posts__container').prepend($postHtml);
+      postHtml.className += 'post__item';
+      postHtml.setAttribute('data-id', postObj.id);
       
+      postHeading.className += 'post__title';
+      postHeading.appendChild(document.createTextNode(postObj.title));
+      postHtml.appendChild(postHeading);
+
+      postDate.className += 'post__date';
+      postDate.appendChild(document.createTextNode(postObj.timestamp));
+      postHtml.appendChild(postDate);
+
+      postText.className += 'post__text';
+      postText.appendChild(document.createTextNode(postObj.text));
+      postHtml.appendChild(postText);
+
+      editButton.id = 'post__edit';
+      editButton.appendChild(document.createTextNode('Edit'));
+      postHtml.appendChild(editButton);
+
+      removeButton.id = 'post__remove';
+      removeButton.appendChild(document.createTextNode('Remove'));
+      postHtml.appendChild(removeButton);
+
+      return postHtml;
     },
+
     clickListeners: function() {
+      var body = document.getElementsByTagName('body')[0];
       //click #post__add
-      blog.buttons.add.click(function() {
-        $('.create-post__form').show();
-        $('.new__title').focus();
-        $(this).hide()
+      blog.buttons.add.addEventListener('click', function() {
+        document.getElementsByClassName('create-post__form')[0].style.display = 'block'
+        // $('.new__title').focus();
+        this.style.display = 'none';
       });
 
       //Click #post__create
-      blog.buttons.create.click(function(e) {
+      blog.buttons.create.addEventListener('click', function(e) {
         e.preventDefault();
-        
-        var newPostObj = {};
 
-        newPostObj.title = $('.new__title').val();
-        newPostObj.text = $('.new__text').val();
+        var newPostObj = {};
+        
+        newPostObj.title = document.getElementsByClassName('new__title')[0].value;
+
+        newPostObj.text = document.getElementsByClassName('new__text')[0].value;
 
         // newPostObj.timestamp = new Date().toISOString();
         blog.createPost(newPostObj);
-        $('.create-post__form').hide();
-        blog.buttons.add.show();
-        $('input[type="text"]').val('');
+        document.getElementsByClassName('create-post__form')[0].style.display = 'none';
+        blog.buttons.add.style.display = 'block';
+        document.getElementsByClassName('create-post__form')[0].reset();
       });
 
       //Click #post__edit
-      $('body').on('click', '#post__edit', function() {
-        // $(this).parent.data('id');
-        $('#post__edit, #post__remove').hide();
-        $(this).parent().append('<form class="edit-post__form"><input type="text" placeholder="New Title" class="update__title"><input type="text" placeholder="New Text" class="update__text"><button id="post__update">Update Post</button></form>');
+      body.addEventListener('click', function(e) {
 
+        if (e.target.id.toLowerCase() === 'post__edit') {
+          document.querySelector('#post__edit').style.display = 'none';
+          document.querySelector('#post__remove').style.display = 'none';
+
+          var editForm = document.createElement('form');
+          var titleField = document.createElement('input');
+          var textField = document.createElement('input');
+          var updateButton = document.createElement('button');
+
+          editForm.className += 'edit-post__form';
+          
+          titleField.type = 'text';
+          titleField.setAttribute('placeholder', 'New Title');
+          titleField.className += 'update__title';
+
+          editForm.appendChild(titleField);
+          
+          textField.type = 'text';
+          textField.setAttribute('placeholder', 'New Text');
+          textField.className += 'update__text';
+          
+          editForm.appendChild(textField);
+          
+          updateButton.appendChild(document.createTextNode('Update Post'));
+          updateButton.id = 'post__update';
+          editForm.appendChild(updateButton);
+
+          e.target.parentNode.appendChild(editForm);
+        }
       });
-
-      $('body').on('click', '#post__update', function(e) {
+      
+     // click #post__update
+     body.addEventListener('click', function(e) {
         e.preventDefault();
-        var updatePostObj = {};
+        if (e.target.id.toLowerCase() ===  'post__update') {
+          var updatePostObj = {};
+          
+          updatePostObj.title = document.getElementsByClassName('update__title')[0].value;
+          updatePostObj.text = document.getElementsByClassName('update__text')[0].value;
 
-        updatePostObj.title = $('.update__title').val();
-        updatePostObj.text = $('.update__text').val();
-        updatePostObj.id = $(this).parent().parent().data('id');
-        $('.edit-post__form').remove();
-        $('#post__edit, #post__remove').show();
-        blog.editPost(updatePostObj);
+          updatePostObj.id = e.target.parentNode.parentNode.getAttribute('data-id');
+
+          document.getElementsByClassName('edit-post__form')[0].outerHTML = '';
+
+          document.querySelector('#post__edit').style.display = 'block';
+          document.querySelector('#post__remove').style.display = 'block';
+
+          blog.editPost(updatePostObj);
+        }
       });
-
       //Click #post__remove
-      $('body').on('click','#post__remove', function() {
-        blog.deletePost($(this).parent().data('id'));
-        $(this).parent().remove();
+      body.addEventListener('click', function(e) {
+        if (e.target.id.toLowerCase() === 'post__remove') {
+          blog.deletePost(e.target.parentNode.parentNode.getAttribute('data-id'));
+          e.target.parentNode.outerHTML = '';
+        }
       });
     }
-
   };
-
 blog.init();
 });
