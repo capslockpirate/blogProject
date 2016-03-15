@@ -122,7 +122,7 @@ $(function() {
       //click #post__add
       blog.buttons.add.addEventListener('click', function() {
         document.getElementsByClassName('create-post__form')[0].style.display = 'block'
-        // $('.new__title').focus();
+        document.getElementsByClassName('new__title')[0].focus();
         this.style.display = 'none';
       });
 
