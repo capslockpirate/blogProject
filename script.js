@@ -190,8 +190,8 @@ $(function() {
 
           document.getElementsByClassName('edit-post__form')[0].outerHTML = '';
 
-          document.querySelector('#post__edit').style.display = 'block';
-          document.querySelector('#post__remove').style.display = 'block';
+          document.querySelector('#post__edit').style.display = 'initial';
+          document.querySelector('#post__remove').style.display = 'initial';
 
           blog.editPost(updatePostObj);
         }
